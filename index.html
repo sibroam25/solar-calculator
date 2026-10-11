@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar Calculator</title>
+<meta name="description" content="Free offline solar calculator. Size your inverter, batteries, solar panels and charge controller from your appliance list.">
+<meta name="theme-color" content="#0e5a66">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Solar Calc">
+<style>
+:root{--bg:#f1f5f7;--panel:#fff;--ink:#14232b;--mute:#5d6f78;--line:#d3dde2;--sun:#f2b705;--deep:#0e5a66;--on:#fff;--field:#f6f9fa}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a1f;--panel:#17262d;--ink:#e6eef1;--mute:#93a7b0;--line:#2a3d46;--deep:#14707e;--field:#0f1a1f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Bahnschrift,"Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums;padding-bottom:84px}
+.wrap{max-width:640px;margin:auto;padding:0 16px}
+header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+h1{font-size:20px;margin:0;padding:12px 0 6px}
+#tabs{display:flex;gap:6px;padding-bottom:10px}
+#tabs button{flex:1;padding:9px 4px;border:1px solid var(--line);background:var(--field);border-radius:8px;font-size:14px;color:var(--mute)}
+#tabs button[aria-current=step]{background:var(--deep);border-color:var(--deep);color:var(--on);font-weight:600}
+h2{font-size:22px;margin:20px 0 4px}
+.sub{color:var(--mute);margin:0 0 14px}
+button,input,select{font:inherit;color:var(--ink)}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.chip{display:flex;gap:8px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:48px}
+.chip b{display:block;font-weight:600;font-size:14.5px;line-height:1.2}
+.chip small{color:var(--mute);font-size:12.5px}
+.chip span{font-size:22px}
+.chip:active{background:var(--sun);border-color:var(--sun)}
+h3{font-size:16px;margin:22px 0 8px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.top b{font-weight:600}
+.rm{border:none;background:none;color:var(--mute);font-size:18px;padding:4px 8px}
+.ctl{display:flex;gap:14px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:2px}
+.step button{width:38px;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--field);font-size:20px}
+.step output{min-width:34px;text-align:center;font-weight:600}
+label{font-size:14px;color:var(--mute);display:flex;align-items:center;gap:6px}
+input,select{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.item input[type=number]{width:74px}
+.empty{color:var(--mute);padding:14px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.q p{margin:0 0 8px;font-weight:600}
+.q small{display:block;color:var(--mute);margin-top:6px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;padding:11px 8px;border:1px solid var(--line);background:var(--field);border-radius:8px}
+.seg button[aria-pressed=true]{background:var(--deep);border-color:var(--deep);color:var(--on);font-weight:600}
+.seg.v button{min-width:62px}
+.q select{width:100%}
+.sunrow{margin-top:10px}
+.sunrow input{width:90px}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hrow .btn{padding:6px 12px;font-size:14px}
+details{margin-top:6px}
+summary{cursor:pointer;color:var(--mute);padding:8px 0}
+.adv{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.adv label{display:block}
+.adv input,.adv select{width:100%;margin-top:3px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.card small{color:var(--mute);display:block}
+.card .v{font-size:30px;font-weight:700;line-height:1.2}
+.hero{background:var(--deep);color:var(--on);border:none}
+.hero small{color:var(--on);opacity:.8}
+.facts{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--mute);font-size:14px;margin:4px 2px 12px}
+.warn{background:rgba(242,183,5,.2);border-left:4px solid var(--sun);padding:10px 12px;border-radius:6px;margin-bottom:10px;font-size:14.5px}
+.acts{display:flex;gap:8px;margin-top:6px}
+.btn{padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-weight:600}
+.go{background:var(--sun);border-color:var(--sun);color:#1b1500}
+.acts .btn{flex:1}
+#bar{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--line);z-index:5}
+#bar .wrap{display:flex;align-items:center;gap:10px;padding-top:10px;padding-bottom:10px}
+#tot{flex:1;line-height:1.25}
+#tot b{font-size:18px}
+#tot small{display:block;color:var(--mute)}
+[hidden]{display:none!important}
+@media print{header,#bar,.acts{display:none}body{background:#fff;padding:0}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div class="hrow"><h1>Solar Calculator</h1><button class="btn" id="install" hidden>Install app</button></div>
+<nav id="tabs" aria-label="Steps">
+<button data-go="1">1. Appliances</button><button data-go="2">2. Setup</button><button data-go="3">3. Your system</button>
+</nav></div></header>
+
+<div class="wrap">
+<div id="ioshint" class="warn" hidden style="margin-top:12px">To install on iPhone: tap the Share button, then Add to Home Screen. <button class="btn" id="iosok" style="padding:4px 10px;margin-left:6px">Got it</button></div>
+<section id="s1">
+<h2>What do you want to power?</h2>
+<p class="sub">Tap an appliance to add it. Tap again to add another.</p>
+<div class="chips" id="chips"></div>
+<h3>Your list</h3>
+<div id="list"></div>
+<button class="btn" id="custom" style="width:100%">+ Add something else</button>
+</section>
+
+<section id="s2" hidden>
+<h2>A few questions</h2>
+<p class="sub">The defaults suit most homes. Change them only if you need to.</p>
+<div class="q"><p>Where will it be installed?</p>
+<select id="loc" aria-label="Location"></select>
+<label class="sunrow">Peak sun hours per day <input type="number" id="psh" step="0.1" min="1" max="8"></label>
+<small>Filled in from the typical yearly average for your location. Change it if you have better data.</small></div>
+<div class="q"><p>Battery type</p>
+<div class="seg" data-k="chem"><button data-v="80">Lithium</button><button data-v="50">Lead-acid</button></div></div>
+<div class="q"><p>Days of battery backup</p>
+<div class="seg" data-k="days"><button data-v="1">1 day</button><button data-v="2">2 days</button><button data-v="3">3 days</button></div>
+<small>How long you can run on batteries alone when the weather is cloudy.</small></div>
+<div class="q"><p>System voltage</p>
+<div class="seg v" data-k="vsys"><button data-v="0">Auto</button><button data-v="12">12 V</button><button data-v="24">24 V</button><button data-v="48">48 V</button><button data-v="96">96 V</button></div>
+<small id="vhint"></small></div>
+<details><summary>Advanced settings</summary>
+<div class="adv">
+<label>Panel watts<input type="number" id="pw" min="100"></label>
+<label>Battery Ah<input type="number" id="bah" min="10"></label>
+<label>Battery voltage<select id="bv"><option value="12">12 V</option><option value="24">24 V</option><option value="48">48 V</option></select></label>
+<label>Depth of discharge %<input type="number" id="dod" min="20" max="95"></label>
+<label>Inverter efficiency %<input type="number" id="ieff" min="70" max="98"></label>
+<label>Array losses factor %<input type="number" id="der" min="50" max="95"></label>
+</div>
+<div class="acts"><button class="btn" id="reset">Reset everything</button></div>
+</details>
+</section>
+
+<section id="s3" hidden>
+<h2>Your system</h2>
+<p class="sub" id="lead"></p>
+<div id="out"></div>
+<div id="warn"></div>
+<p class="sub" style="margin-top:14px">These are planning estimates. Have a qualified solar installer confirm the final design before you buy equipment.</p>
+<div class="acts"><button class="btn" id="copy">Copy summary</button><button class="btn" onclick="print()">Print</button></div>
+</section>
+</div>
+
+<div id="bar"><div class="wrap">
+<div id="tot"><b>0 kWh/day</b><small>0 W connected</small></div>
+<button class="btn" id="back" hidden>Back</button>
+<button class="btn go" id="next">Next: Setup</button>
+</div></div>
+
+<script>
+const P=[["💡","LED bulb",10,1,5],["🌀","Ceiling fan",75,1,8],["📺","TV",50,1,5],["📡","Decoder",25,1,5],["💻","Laptop",65,1,6],["📱","Phone charger",10,1,3],["🛜","WiFi router",12,1,24],["🧊","Fridge",150,3,8],["❄️","Freezer",200,3,8],["🚰","Water pump",750,3.5,1],["🌬️","AC 1 HP",900,3,6],["🌬️","AC 1.5 HP",1300,3,6],["👔","Pressing iron",1000,1,.5],["🍲","Microwave",1200,1,.3],["🥤","Blender",400,2,.2],["🖥️","Desktop PC",250,1,6]];
+const D={psh:4.5,loc:"",vsys:0,days:1,chem:80,dod:80,ieff:90,der:75,pw:550,bah:200,bv:12};
+const $=id=>document.getElementById(id);
+let rows=[],S={...D},step=1;
+try{const s=JSON.parse(localStorage.getItem("solarCalc2")||"null");if(s){rows=s.rows||[];S={...D,...s.S}}}catch(e){}
+const save=()=>{try{localStorage.setItem("solarCalc2",JSON.stringify({rows,S}))}catch(e){}};
+const f=(n,d=0)=>n.toLocaleString("en",{maximumFractionDigits:d});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+$("chips").innerHTML=P.map((p,i)=>`<button class="chip" data-p="${i}"><span>${p[0]}</span><div><b>${p[1]}</b><small>${p[2]} W</small></div></button>`).join("");
+$("chips").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;const p=P[b.dataset.p],r=rows.find(r=>r.n===p[1]&&r.w===p[2]);if(r)r.q++;else rows.push({n:p[1],w:p[2],q:1,h:p[4],s:p[3]});list();calc()};
+$("custom").onclick=()=>{rows.push({n:"My appliance",w:100,q:1,h:4,s:1});list();calc();const l=$("list").querySelectorAll("input[data-k=n]");l[l.length-1].select()};
+
+function list(){
+ $("list").innerHTML=rows.length?rows.map((r,i)=>`<div class="item"><div class="top"><b>${esc(r.n)}</b><button class="rm" data-del="${i}" aria-label="Remove ${esc(r.n)}">✕</button></div>
+ <div class="ctl"><div class="step"><button data-m="${i}" aria-label="Less">−</button><output>${r.q}</output><button data-a="${i}" aria-label="More">+</button></div>
+ <label>Hours/day <input type="number" min="0" max="24" step="any" data-i="${i}" data-k="h" value="${r.h}"></label>
+ <label>Watts <input type="number" min="0" step="any" data-i="${i}" data-k="w" value="${r.w}"></label></div></div>`).join(""):`<div class="empty">Nothing yet. Tap an appliance above.</div>`;
+}
+$("list").onclick=e=>{const t=e.target,g=k=>t.dataset[k];
+ if(g("del")!==undefined)rows.splice(g("del"),1);
+ else if(g("a")!==undefined)rows[g("a")].q++;
+ else if(g("m")!==undefined){if(rows[g("m")].q>1)rows[g("m")].q--;else rows.splice(g("m"),1)}
+ else return;list();calc()};
+$("list").oninput=e=>{const t=e.target;if(t.dataset.i===undefined)return;rows[t.dataset.i][t.dataset.k]=parseFloat(t.value)||0;calc()};
+
+function setSeg(){document.querySelectorAll(".seg").forEach(s=>s.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===+S[s.dataset.k])))}
+document.querySelectorAll(".seg").forEach(s=>s.onclick=e=>{const b=e.target.closest("button");if(!b)return;const k=s.dataset.k;S[k]=+b.dataset.v;if(k==="chem")S.dod=S.chem;sync();calc()});
+const NG=[["Abia","Umuahia",4.3],["Adamawa","Yola",5.4],["Akwa Ibom","Uyo",4.1],["Anambra","Awka",4.3],["Bauchi","Bauchi",5.6],["Bayelsa","Yenagoa",4.0],["Benue","Makurdi",5.1],["Borno","Maiduguri",5.8],["Cross River","Calabar",4.3],["Delta","Asaba",4.2],["Ebonyi","Abakaliki",4.4],["Edo","Benin City",4.4],["Ekiti","Ado-Ekiti",4.6],["Enugu","Enugu",4.6],["FCT","Abuja",5.2],["Gombe","Gombe",5.6],["Imo","Owerri",4.3],["Jigawa","Dutse",5.8],["Kaduna","Kaduna",5.5],["Kano","Kano",5.7],["Katsina","Katsina",5.9],["Kebbi","Birnin Kebbi",5.7],["Kogi","Lokoja",5.1],["Kwara","Ilorin",5.1],["Lagos","Ikeja",4.4],["Nasarawa","Lafia",5.2],["Niger","Minna",5.3],["Ogun","Abeokuta",4.5],["Ondo","Akure",4.5],["Osun","Osogbo",4.7],["Oyo","Ibadan",4.8],["Plateau","Jos",5.4],["Rivers","Port Harcourt",4.0],["Sokoto","Sokoto",5.9],["Taraba","Jalingo",5.3],["Yobe","Damaturu",5.8],["Zamfara","Gusau",5.8]];
+const OT=[["Accra, Ghana",4.9],["Lomé, Togo",4.8],["Cotonou, Benin",4.7],["Abidjan, Côte d'Ivoire",4.6],["Dakar, Senegal",5.7],["Niamey, Niger",6.0],["N'Djamena, Chad",5.9],["Yaoundé, Cameroon",4.4],["Nairobi, Kenya",5.3],["Kampala, Uganda",5.0],["Dar es Salaam, Tanzania",5.3],["Addis Ababa, Ethiopia",5.5],["Lusaka, Zambia",5.6],["Johannesburg, South Africa",5.6],["Cairo, Egypt",6.0],["Dubai, UAE",5.8],["Delhi, India",5.2],["Karachi, Pakistan",5.4],["London, UK",2.8],["New York, USA",4.2]];
+const LOC={};
+NG.forEach(a=>LOC[a[0]+" ("+a[1]+")"]=a[2]);OT.forEach(a=>LOC[a[0]]=a[1]);
+const og=(t,a)=>`<optgroup label="${t}">`+a.map(k=>`<option value="${k}">${k}</option>`).join("")+"</optgroup>";
+$("loc").innerHTML='<option value="">Choose your state or city</option>'+og("Nigeria, by state",NG.map(a=>a[0]+" ("+a[1]+")"))+og("Other places",OT.map(a=>a[0]))+'<option value="custom">My own value</option>';
+$("loc").onchange=()=>{const v=$("loc").value;if(v&&v!=="custom"){S.loc=v;S.psh=LOC[v]}else if(v==="custom"){S.loc=v;$("psh").focus()}sync();calc()};
+const ADV=["psh","dod","ieff","der","pw","bah","bv"];
+ADV.forEach(k=>{const el=$(k);el.addEventListener("input",()=>{S[k]=parseFloat(el.value)||0;setSeg();calc()})});
+$("psh").addEventListener("input",()=>{S.loc="custom";$("loc").value="custom"});
+function sync(){ADV.forEach(k=>$(k).value=S[k]);$("loc").value=S.loc||"";setSeg()}
+$("reset").onclick=()=>{if(!confirm("Clear your list and settings?"))return;rows=[];S={...D};sync();list();calc()};
+
+const INV=[.5,1,1.5,2,2.5,3.5,5,7.5,10,15,20],MPPT=[20,30,40,60,80,100,150];
+const up=(a,v)=>a.find(x=>x>=v)||a[a.length-1];
+let summary="";
+function calc(){
+ save();
+ const act=rows.filter(r=>r.w>0&&r.q>0);
+ const E=act.reduce((a,r)=>a+r.w*r.q*r.h,0),cont=act.reduce((a,r)=>a+r.w*r.q,0);
+ const sg=act.reduce((m,r)=>Math.max(m,r.w*r.q*Math.max(0,(r.s||1)-1)),0),peak=cont+sg;
+ $("tot").innerHTML=`<b>${f(E/1000,2)} kWh/day</b><small>${f(cont)} W connected</small>`;
+ const ie=S.ieff/100,dod=S.dod/100,der=S.der/100;
+ const invK=cont?up(INV,Math.max(cont*1.25,peak/2)/1000):0;
+ const a0=E/(S.psh*der),minV=invK<=1?12:invK<=3.5?24:48,recV=Math.max(minV,a0<=500?12:a0<=1500?24:48),V=+S.vsys||recV;
+ $("vhint").textContent=cont?(S.vsys?`Best fit for your list: ${recV} V.`:`Auto will use ${recV} V for your list.`):"Add appliances to see a recommendation.";
+ const battWh=E/ie*S.days/dod,ser=Math.max(1,Math.round(V/S.bv)),par=Math.max(1,Math.ceil(battWh/V/S.bah));
+ const nB=ser*par,arrW=E/(S.psh*der),nP=Math.ceil(arrW/S.pw),inst=nP*S.pw;
+ const ctl=inst/V*1.25,ctlS=up(MPPT,ctl);
+ if(!E){$("lead").textContent="Add at least one appliance in step 1 to see your system.";$("out").innerHTML="";$("warn").innerHTML="";summary="";return}
+ $("lead").textContent=`For ${f(E/1000,2)} kWh a day, here is what to buy.`;
+ $("out").innerHTML=
+ `<div class="card hero"><small>Inverter</small><div class="v">${invK} kVA</div><small>${V} V system${S.vsys?"":" (picked automatically)"}</small></div>
+ <div class="card"><small>Batteries</small><div class="v">${nB} × ${S.bah} Ah</div><small>${S.bv} V ${S.chem==80?"lithium":"lead-acid"}, wired ${ser} in series and ${par} in parallel. Stores ${f(battWh/1000,1)} kWh.</small></div>
+ <div class="card"><small>Solar panels</small><div class="v">${nP} × ${S.pw} W</div><small>${f(inst/1000,2)} kW in total. You need at least ${f(arrW)} W.</small></div>
+ <div class="card"><small>MPPT charge controller</small><div class="v">${ctlS} A</div><small>Calculated ${f(ctl)} A at ${V} V.</small></div>
+ <div class="facts"><span>Daily use ${f(E/1000,2)} kWh</span><span>Connected ${f(cont)} W</span><span>Peak start-up ${f(peak)} W</span></div>`;
+ const w=[];
+ if(ctl>150)w.push("The controller current is above 150 A. Choose a higher system voltage in step 2, or split the panels into two arrays.");
+ if(V<minV)w.push(`A ${invK} kVA inverter normally needs at least ${minV} V. Choose ${recV} V or higher in step 2.`);
+ if(Math.abs(V/S.bv-Math.round(V/S.bv))>.01)w.push("The battery voltage does not divide evenly into the system voltage. Adjust it in Advanced settings.");
+ if(S.chem==50&&S.dod>50)w.push("Lead-acid batteries last longest when you use no more than 50% of their charge.");
+ $("warn").innerHTML=w.map(x=>`<div class="warn">${x}</div>`).join("");
+ summary=`Solar system estimate\nDaily energy: ${f(E/1000,2)} kWh\nConnected load: ${f(cont)} W (peak ${f(peak)} W)\nInverter: ${invK} kVA at ${V} V\nBatteries: ${nB} × ${S.bah} Ah ${S.bv} V (${f(battWh/1000,1)} kWh)\nPanels: ${nP} × ${S.pw} W = ${f(inst/1000,2)} kW\nMPPT controller: ${ctlS} A\nAssumes ${S.psh} peak sun hours${S.loc&&S.loc!=="custom"?` (${S.loc})`:""}, ${S.days} day(s) backup, ${S.dod}% depth of discharge`;
+}
+
+function go(n){
+ step=n;
+ [1,2,3].forEach(i=>{$("s"+i).hidden=i!==n});
+ document.querySelectorAll("#tabs button").forEach(b=>{+b.dataset.go===n?b.setAttribute("aria-current","step"):b.removeAttribute("aria-current")});
+ $("back").hidden=n===1;
+ $("next").hidden=n===3;
+ $("next").textContent=n===1?"Next: Setup":"See my system";
+ scrollTo(0,0);
+}
+$("tabs").onclick=e=>{const b=e.target.closest("[data-go]");if(b)go(+b.dataset.go)};
+$("next").onclick=()=>go(step+1);
+$("back").onclick=()=>go(step-1);
+$("copy").onclick=()=>{if(!summary)return;const b=$("copy");(navigator.clipboard?navigator.clipboard.writeText(summary):Promise.reject()).then(()=>{b.textContent="Copied"},()=>{prompt("Copy this summary:",summary)});setTimeout(()=>b.textContent="Copy summary",1500)};
+
+sync();list();calc();go(1);
+
+/* install button (Android and desktop) and iPhone hint */
+let dip=null;
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();dip=e;$("install").hidden=false});
+$("install").onclick=async()=>{if(!dip)return;dip.prompt();await dip.userChoice;dip=null;$("install").hidden=true};
+addEventListener("appinstalled",()=>{$("install").hidden=true});
+try{
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!navigator.standalone;
+ if(ios&&!localStorage.getItem("iosHint"))$("ioshint").hidden=false;
+ $("iosok").onclick=()=>{$("ioshint").hidden=true;try{localStorage.setItem("iosHint","1")}catch(e){}};
+}catch(e){}
+/* offline support (only when served over http/https) */
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
